@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Basic Renderer</title>
+    <link rel="stylesheet" href="css/master.css">
+</head>
+<body>
+    <div id="wrapper">
+        <div id="song_win_state">LEVEL CLEARED</div>
+        <div class="top_row">
+            <div id="song_name">NAME HERE</div>
+            <div id="song_artist">Artist here</div>
+            <div id="song_mapper">Mapper name here</div>
+            <div id="song_diff">Expert+</div>
+        </div>
+        <div class="overall_stats">
+            <div class="ministat">
+                <div>Rating</div>
+                <div id="rating">SS</div>
+            </div>
+            <div class="ministat">
+                <div>Score</div>
+                <div id="score">1 233 333 (97.55%)</div>
+            </div>
+            <div class="ministat">
+                <div>Max Combo</div>
+                <div id="max_combo">4112</div>
+            </div>
+            <div class="ministat">
+                <div>Misses</div>
+                <div id="misses">None (FC)</div>
+            </div>
+            <div class="ministat">
+                <div>Pauses</div>
+                <div id="pauses">1</div>
+            </div>
+            <div class="ministat">
+                <div>PB</div>
+                <div id="pb_score">1 445 444 (99.54%)</div>
+            </div>
+        </div>
+        <div class="detailed_stats">
+            <div class="acc_display">
+                <div>LEFT</div>
+                <div>Avg. Acc: <span id="l_avg_acc">101.15</span></div>
+                <div>Avg. Speed: <span id="l_avg_speed">199.55</span> km/h</div>
+                <div>Max Speed: <span id="l_max_speed">199.55</span> km/h</div>
+                <div>Hand Distance: <span id="l_hand_dist">1200</span>m</div>
+                <div>Saber Distance: <span id="l_saber_dist">1200</span>m</div>
+                <div>Preswing: <span id="l_pre">70</span>/70</div>
+                <div>Center Acc: <span id="l_acc">15</span>/15</div>
+                <div>Postswing: <span id="l_post">30</span>/30</div>
+            </div>
+            <div class="acc_display">
+                <div>RIGHT</div>
+                <div>Avg. Acc: <span id="r_avg_acc">101.15</span></div>
+                <div>Avg. Speed: <span id="r_avg_speed">199.55</span> km/h</div>
+                <div>Max Speed: <span id="r_max_speed">199.55</span> km/h</div>
+                <div>Hand Distance: <span id="r_hand_dist">1200</span>m</div>
+                <div>Saber Distance: <span id="r_saber_dist">1200</span>m</div>
+                <div>Preswing: <span id="r_pre">70</span>/70</div>
+                <div>Center Acc: <span id="r_acc">15</span>/15</div>
+                <div>Postswing: <span id="r_post">30</span>/30</div>
+            </div>
+            <div class="detailed_acc">
+                <div id="gridacc">
+                    <div class="blockrow">
+                        <div id="block_8">
+                            <div>Hits: 8</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_9">
+                            <div>Hits: 9</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_10">
+                            <div>Hits: 10</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_11">
+                            <div>Hits: 11</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                    </div>
+                    <div class="blockrow">
+                        <div id="block_4">
+                            <div>Hits: 4</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_5">
+                            <div>Hits: 5</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_6">
+                            <div>Hits: 6</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_7">
+                            <div>Hits: 7</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                    </div>
+                    <div class="blockrow">
+                        <div id="block_0">
+                            <div>Hits: 0</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_1">
+                            <div>Hits: 1</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_2">
+                            <div>Hits: 2</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                        <div id="block_3">
+                            <div>Hits: 3</div>
+                            <div>Acc: 110.02</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="graphacc">
+                    <div>Accuracy over time</div>
+                    <canvas width="600" height="375" id="graph"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./js/app.js"></script>
+</html>

@@ -22,6 +22,7 @@ type BSD_Reader struct {
 	Sessions     *[]types.BSD_Session
 	Session_map  map[string]*types.BSD_Session
 	db           *bsddb.DBwrap
+	web_ch       *types.WEB_Settings
 }
 
 func (reader *BSD_Reader) ReadBSDAsStreams(entry os.DirEntry) ([]string, error) {
@@ -67,6 +68,9 @@ func (reader *BSD_Reader) ParseBSDFromStream(stream string, date string, sid int
 			}
 		} else {
 			log.Printf("Registered new song data: %s - %s (%s; %s)\n", *song.SongArtist, *song.SongName, *song.SongMapper, *song.SongDifficulty)
+			if reader.web_ch != nil && reader.web_ch.OnNewSongData != nil {
+				*reader.web_ch.OnNewSongData <- &song
+			}
 		}
 		*reader.Songs = append(*reader.Songs, song)
 	case (strings.Contains(stream, "totalScore")):
@@ -192,6 +196,10 @@ func (reader *BSD_Reader) FileWatcher() {
 			*reader.Sessions = append(*reader.Sessions, session)
 			reader.Session_map[reader.Default_path+f_name] = &session
 
+			if reader.web_ch != nil && reader.web_ch.OnNewSession != nil {
+				*reader.web_ch.OnNewSession <- &session
+			}
+
 			log.Printf("Processing session: %d\n", sid)
 
 			for stream_id := 0; stream_id < len(datastreams); stream_id++ {
@@ -208,12 +216,13 @@ func (reader *BSD_Reader) FileWatcher() {
 	}
 }
 
-func (reader *BSD_Reader) Init(db *bsddb.DBwrap) error {
+func (reader *BSD_Reader) Init(db *bsddb.DBwrap, web_channels *types.WEB_Settings) error {
 	reader.Headers = &[]types.BSD_HeaderGlobal{}
 	reader.Songs = &[]types.BSD_Song{}
 	reader.Sessions = &[]types.BSD_Session{}
 	reader.Session_map = make(map[string]*types.BSD_Session)
 	reader.db = db
+	reader.web_ch = web_channels
 	switch runtime.GOOS {
 	case "windows":
 		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")

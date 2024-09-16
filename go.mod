@@ -29,3 +29,7 @@ replace bsvapi/types => ./modules/types
 require bsvapi/bsddb v0.0.0
 
 replace bsvapi/bsddb => ./modules/bsddb
+
+require bsvapi/bsdweb v0.0.0
+
+replace bsvapi/bsdweb => ./modules/bsdweb

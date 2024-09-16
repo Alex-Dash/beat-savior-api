@@ -183,6 +183,12 @@ type BSD_Session struct {
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
 
+type WEB_Settings struct {
+	OnNewSession  *chan *BSD_Session
+	OnNewSongData *chan *BSD_Song
+	OnReady       *chan struct{}
+}
+
 /*
 Returns a color representation in hex format,
 i.e. #RRGGBBAA

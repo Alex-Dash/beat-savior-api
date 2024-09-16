@@ -9,6 +9,8 @@ import (
 
 	"bsvapi/bsddb"
 	"bsvapi/bsdfilereader"
+	"bsvapi/bsdweb"
+	"bsvapi/types"
 
 	"fyne.io/systray"
 	"github.com/gen2brain/beeep"
@@ -40,6 +42,14 @@ var (
 )
 
 func startSetup() error {
+
+	sess_ch := make(chan *types.BSD_Session)
+	song_ch := make(chan *types.BSD_Song)
+	web_ch := types.WEB_Settings{
+		OnNewSession:  &sess_ch,
+		OnNewSongData: &song_ch,
+	}
+
 	systray.SetTooltip("Creating database")
 	err := db.Init()
 	if err != nil {
@@ -47,7 +57,7 @@ func startSetup() error {
 	}
 
 	systray.SetTooltip("Indexing song data")
-	err = bsd_reader.Init(db)
+	err = bsd_reader.Init(db, &web_ch)
 	if err != nil {
 		return err
 	}
@@ -59,6 +69,12 @@ func startSetup() error {
 	if bsd_reader.Songs != nil {
 		log.Printf("Song data count: %d\n", len(*bsd_reader.Songs))
 	}
+
+	err = bsdweb.Init(&web_ch)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
