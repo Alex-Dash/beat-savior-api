@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -50,6 +51,13 @@ func startSetup() error {
 		OnNewSongData: &song_ch,
 	}
 
+	if _, err := os.Stat(bsddb.DB_FILE_PATH); errors.Is(err, os.ErrNotExist) {
+		err := beeep.Notify("Beat Savior API", "Building the database...\nThis might take a while", "assets/png/orange_d.png")
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	systray.SetTooltip("Creating database")
 	err := db.Init()
 	if err != nil {
@@ -85,7 +93,7 @@ func onURLcopy(c chan struct{}) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		clipboard.Write(clipboard.FmtText, []byte("http://127.0.0.1:1337"))
+		clipboard.Write(clipboard.FmtText, []byte("http://127.0.0.1:1337   ws://172.0.0.1:1337/ws"))
 	}
 	log.Println("Copied URL")
 
@@ -118,12 +126,12 @@ func onReady() {
 	mURLcopy := systray.AddMenuItem("Copy API URL", "Copy API web address into clipboard")
 	go onURLcopy(mURLcopy.ClickedCh)
 
-	mRebuild := systray.AddMenuItem("Rebuild Database", "Completely rebuild the database using new data")
-	mRebuild.SetIcon(ICON_RED_A)
+	// mRebuild := systray.AddMenuItem("Rebuild Database", "Completely rebuild the database using new data")
+	// mRebuild.SetIcon(ICON_RED_A)
 
-	mLan := systray.AddMenuItem("Open to LAN", "Open server to external connections")
-	mLan.SetIcon(ICON_BLUE_A)
-	go onToggleLan(mLan.ClickedCh, mLan)
+	// mLan := systray.AddMenuItem("Open to LAN", "Open server to external connections")
+	// mLan.SetIcon(ICON_BLUE_A)
+	// go onToggleLan(mLan.ClickedCh, mLan)
 
 	mQuit := systray.AddMenuItem("Quit", "Close API server")
 	mQuit.SetIcon(ICON_RED_D)

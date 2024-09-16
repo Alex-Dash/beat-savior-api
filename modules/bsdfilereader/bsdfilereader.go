@@ -46,7 +46,7 @@ func (reader *BSD_Reader) ReadBSDAsStreams(entry os.DirEntry) ([]string, error) 
 	return datastreams, nil
 }
 
-func (reader *BSD_Reader) ParseBSDFromStream(stream string, date string, sid int) error {
+func (reader *BSD_Reader) ParseBSDFromStream(stream string, date string, sid int, bypass_web_notifier bool) error {
 	switch true {
 	case (strings.Contains(stream, "songID")):
 		// song
@@ -68,7 +68,7 @@ func (reader *BSD_Reader) ParseBSDFromStream(stream string, date string, sid int
 			}
 		} else {
 			log.Printf("Registered new song data: %s - %s (%s; %s)\n", *song.SongArtist, *song.SongName, *song.SongMapper, *song.SongDifficulty)
-			if reader.web_ch != nil && reader.web_ch.OnNewSongData != nil {
+			if reader.web_ch != nil && reader.web_ch.OnNewSongData != nil && !bypass_web_notifier {
 				*reader.web_ch.OnNewSongData <- &song
 			}
 		}
@@ -152,7 +152,7 @@ func (reader *BSD_Reader) FileWatcher() {
 
 				log.Printf("Processing session: %d\n", sid)
 				for stream_id := 0; stream_id < len(datastreams); stream_id++ {
-					err = reader.ParseBSDFromStream(datastreams[stream_id], entry_date, sid)
+					err = reader.ParseBSDFromStream(datastreams[stream_id], entry_date, sid, false)
 					if err != nil {
 						if err.Error() == bsddb.ERR_SONG_DATA_EXISTS {
 							continue
@@ -203,7 +203,7 @@ func (reader *BSD_Reader) FileWatcher() {
 			log.Printf("Processing session: %d\n", sid)
 
 			for stream_id := 0; stream_id < len(datastreams); stream_id++ {
-				err = reader.ParseBSDFromStream(datastreams[stream_id], entry_date, sid)
+				err = reader.ParseBSDFromStream(datastreams[stream_id], entry_date, sid, false)
 				if err != nil {
 					if err.Error() == bsddb.ERR_SONG_DATA_EXISTS {
 						continue
@@ -288,7 +288,7 @@ func (reader *BSD_Reader) Init(db *bsddb.DBwrap, web_channels *types.WEB_Setting
 
 		// inf, _ := entries[entry_id].Info()
 		for stream_id := 0; stream_id < len(datastreams); stream_id++ {
-			err = reader.ParseBSDFromStream(datastreams[stream_id], entry_date, sid)
+			err = reader.ParseBSDFromStream(datastreams[stream_id], entry_date, sid, true)
 			if err != nil {
 				if err.Error() == bsddb.ERR_SONG_DATA_EXISTS {
 					continue
