@@ -14,6 +14,12 @@ A client-side server providing a convinient way to access your [Beat Savior](htt
 - Beat Saber tournament live data capture and analysis
 - Local Beat Saber statistics backup
 
+
+
+https://github.com/user-attachments/assets/30f9cd4f-1863-458e-9fa8-cb4afc6c7807
+
+
+
 ## How does it work?
 Every time a custom song is played, Beat Savior records its data into a session file, located in your AppData folder (`AppData/Roaming/Beat Savior Data`). Beat Savior API server then indexes that folder, builds a database copy and enables you to access it over the network.
 
