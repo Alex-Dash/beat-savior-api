@@ -5,7 +5,7 @@ A client-side server providing a convinient way to access your [Beat Savior](htt
 > You have to have [Beat Savior Data Plugin](https://github.com/Mystogan98/BeatSaviorData) installed for the API to work.
 
 > [!TIP]
-> This program only provides a way to access the data. It does not construct overlays or display any data by itself. Check the [Examples folder](examples/) or [Examples section](#example-usage) for integration examples.
+> This program only provides a way to access the data. It does not construct overlays or display any data by itself. Check the [Examples folder](examples/) or the [Examples section](#example-usage) for integration examples.
 
 ## Usecases
 
@@ -33,6 +33,16 @@ Here is a quick reference guide for all the icons:
 |<img src="./assets/png/blue_a.png" alt="Blue Beat Saber block with an arrow" width="32"/> | Beat Savior API is running and open to external requests (Open to LAN) |
 |<img src="./assets/png/red_a.png" alt="Red Beat Saber block with an arrow" width="32"/> | Beat Savior API encountered a critical error and cannot continue |
 
+## Installation or update
+> [!IMPORTANT]
+> When running the program for the first time, it needs some time to build a database and back-up all of your statistics. It may take a long time, depending on how many files you have. Please be patient. The program would notify you when it is ready.
+
+1. Download the desired version from the [releases tab](releases)
+1. Stop all currently running instances of Beat Savior API (click the system tray icon and choose "Quit")
+1. Extract the whole `bsvapi` folder to your desired location. (Do not launch it from the archive!)
+1. Double-click the `bsvapi.exe` to launch.
+
+
 ## API Documentation
 
 > [!NOTE]
@@ -45,10 +55,10 @@ This section contains some example projects that you can modify to your liking.
 | ---                                                               | ---           |    :---:   |
 | [Basic OBS overlay on song finish](examples/obs_basic_renderer/)  | WebSocket API |    ●●○○○   |
 
-
 ## Roadmap
 - [x] WebSocket - notification on new song data
 - [ ] REST API - a way to browse the data using GET and POST requests
 - [ ] WebSocket - API for accessing per-note statistics
 - [ ] WebSocket - notification on new session data
 - [ ] WebSocket - notification on new/changed header/settings data
+- [ ] General - "Update available" notification
