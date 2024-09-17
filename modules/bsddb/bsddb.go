@@ -240,3 +240,59 @@ func (db *DBwrap) UpdateSessionModtime(f_name string, f_path string, time_ms int
 	_, err = db.db.Exec(`UPDATE sessions SET updated_at=$1 WHERE sid=$2`, time_ms, sid)
 	return sid, err
 }
+
+func (db *DBwrap) GetLatestSessionData() (*T.BSD_Session, error) {
+
+	sess := T.BSD_Session{}
+	sess.Header = &T.BSD_HeaderGlobal{}
+	sess.Songs = &[]T.BSD_Song{}
+
+	// get general session data
+	err := db.db.QueryRow(`SELECT sid, f_name, f_path, updated_at FROM sessions ORDER BY updated_at DESC LIMIT 1`).Scan(&sess.Sid, &sess.FileName, &sess.FilePath, &sess.UpdatedAtInt)
+	if err != nil {
+		return nil, err
+	}
+
+	// retrieve header data
+	var raw_header string
+	err = db.db.QueryRow(`SELECT data FROM headers WHERE sid=$1 LIMIT 1`, sess.Sid).Scan(&raw_header)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(raw_header), &sess.Header)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.db.Query(`SELECT 
+	play_id, sid, playerID, 
+	songID, songDifficulty, songName,
+	songArtist, songMapper, gameMode,
+	songDifficultyRank, songSpeed, songDuration,
+	songJumpDistance 
+	FROM 
+	song_data WHERE sid = $1`, sess.Sid)
+	if err != nil {
+		return &sess, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		song_data := T.BSD_Song{}
+		err := rows.Scan(
+			&song_data.PlayID, &song_data.SID, &song_data.PlayerID,
+			&song_data.SongID, &song_data.SongDifficulty, &song_data.SongName,
+			&song_data.SongArtist, &song_data.SongMapper, &song_data.GameMode,
+			&song_data.SongDifficultyRank, &song_data.SongSpeed, &song_data.SongDuration,
+			&song_data.SongJumpDistance,
+		)
+		if err != nil {
+			return &sess, err
+		}
+		*sess.Songs = append(*sess.Songs, song_data)
+	}
+
+	return &sess, nil
+
+}

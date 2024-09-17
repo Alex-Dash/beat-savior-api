@@ -77,7 +77,7 @@ func startSetup() error {
 
 	// @TODO: Onload statistics
 
-	err = bsdweb.Init(&web_ch)
+	err = bsdweb.Init(&web_ch, db)
 	if err != nil {
 		return err
 	}
@@ -156,11 +156,6 @@ func onExit() {
 	db.Close()
 	log.Println("Shutting down API instance")
 	os.Exit(0)
-}
-
-func prepLogs() {
-
-	fmt.Println("Logs OK")
 }
 
 func main() {

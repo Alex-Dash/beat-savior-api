@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"bsvapi/bsddb"
 	T "bsvapi/types"
 
 	"github.com/gorilla/mux"
@@ -44,6 +45,7 @@ type ErrorStruct struct {
 }
 
 var g_settings *T.WEB_Settings
+var db *bsddb.DBwrap
 
 var pb []string = []string{
 	"The machine with a base-plate of prefabulated aluminite, surmounted by a malleable logarithmic casing in such a way that the two main spurving bearings were in a direct line with the pentametric fan",
@@ -272,22 +274,34 @@ func apiGlobalRouter(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch group {
-	case "session":
-		apiSession(w, r, endpoint, operation, &apireq)
+	case "system":
+		apiSystem(w, r, endpoint, operation, &apireq)
 	default:
-		fmt.Println("invalid API group")
-		homePage(w, r)
+		ThrowApiErr(w, "Invalid API group", nil, 400)
 		return
 	}
 }
 
-func apiSession(w http.ResponseWriter, r *http.Request, endpoint string, operation string, apireq *API_obj) {
+func apiSystem(w http.ResponseWriter, r *http.Request, endpoint string, operation string, apireq *API_obj) {
 	switch endpoint {
-	case "latest":
-
+	case "session":
+		apiSysSession(w, r, operation, apireq)
 	default:
-		fmt.Println("invalid API endpoint")
-		homePage(w, r)
+		ThrowApiErr(w, "Invalid API endpoint", nil, 400)
+	}
+}
+
+func apiSysSession(w http.ResponseWriter, r *http.Request, operation string, apireq *API_obj) {
+	switch operation {
+	case "latest":
+		sess, err := db.GetLatestSessionData()
+		if err != nil {
+			ThrowApiErr(w, "Failed to get the latest play session", err, 500)
+			return
+		}
+		apiRespond(w, &API_obj{Session: sess})
+	default:
+		ThrowApiErr(w, "Invalid API operation", nil, 400)
 	}
 }
 
@@ -326,7 +340,7 @@ func setupRoutes() {
 	router := mux.NewRouter().StrictSlash(false)
 
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) { wsHandler(w, r) })
-	// router.HandleFunc("/api/{group}/{endpoint}/{operation}", apiGlobalRouter)
+	router.HandleFunc("/api/{group}/{endpoint}/{operation}", apiGlobalRouter)
 
 	router.NotFoundHandler = router.NewRoute().HandlerFunc(homePage).GetHandler()
 	log.Fatal(http.ListenAndServe(":1337", router))
@@ -364,9 +378,10 @@ func onNewSongData(c chan *T.BSD_Song) {
 	}
 }
 
-func Init(settings *T.WEB_Settings) error {
+func Init(settings *T.WEB_Settings, db_p *bsddb.DBwrap) error {
 	log.Println("Starting Web API...")
 
+	db = db_p
 	go func() {
 		setupRoutes()
 		// log.Fatal(http.ListenAndServe(":1337", nil))

@@ -66,6 +66,7 @@ type BSD_Song struct {
 	// Custom Field
 	PlayDate *string `json:"playDate,omitempty"`
 	PlayID   *int    `json:"playID,omitempty"`
+	SID      *int    `json:"sid,omitempty"`
 }
 
 type BSD_Trackers struct {
@@ -182,6 +183,11 @@ type BSD_Session struct {
 	FileName  *string    `json:"f_name,omitempty"`
 	FilePath  *string    `json:"f_path,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+
+	// API
+	UpdatedAtInt *int              `json:"updated_at_int,omitempty"`
+	Header       *BSD_HeaderGlobal `json:"header,omitempty"`
+	Songs        *[]BSD_Song       `json:"songs,omitempty"`
 }
 
 type WEB_Settings struct {
