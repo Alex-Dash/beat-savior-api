@@ -37,7 +37,7 @@ Here is a quick reference guide for all the icons:
 > [!IMPORTANT]
 > When running the program for the first time, it needs some time to build a database and back-up all of your statistics. It may take a long time, depending on how many files you have. Please be patient. The program would notify you when it is ready.
 
-1. Download the desired version from the [releases tab](releases)
+1. Download the desired version from the [releases tab](https://github.com/Alex-Dash/beat-savior-api/releases)
 1. Stop all currently running instances of Beat Savior API (click the system tray icon and choose "Quit")
 1. Extract the whole `bsvapi` folder to your desired location. (Do not launch it from the archive!)
 1. Double-click the `bsvapi.exe` to launch.
