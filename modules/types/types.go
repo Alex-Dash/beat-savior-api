@@ -65,6 +65,7 @@ type BSD_Song struct {
 
 	// Custom Field
 	PlayDate *string `json:"playDate,omitempty"`
+	PlayID   *int    `json:"playID,omitempty"`
 }
 
 type BSD_Trackers struct {
@@ -117,15 +118,15 @@ type BSD_AccuracyTracker struct {
 }
 
 type BSD_ScoreTracker struct {
-	RawScore                  *int     `json:"rawScore,omitempty"`
-	Score                     *int     `json:"score,omitempty"`
-	PersonalBest              *int     `json:"personalBest,omitempty"`
-	RawRatio                  *float64 `json:"rawRatio,omitempty"`
-	ModifiedRatio             *float64 `json:"modifiedRatio,omitempty"`
-	PersonalBestRawRatio      *float64 `json:"personalBestRawRatio,omitempty"`
-	PersonalBestModifiedRatio *float64 `json:"personalBestModifiedRatio,omitempty"`
-	ModifiersMultiplier       *float64 `json:"modifiersMultiplier,omitempty"`
-	// Modifiers                 *[]string `json:"modifiers,omitempty"` // @TODO: Type unknown
+	RawScore                  *int      `json:"rawScore,omitempty"`
+	Score                     *int      `json:"score,omitempty"`
+	PersonalBest              *int      `json:"personalBest,omitempty"`
+	RawRatio                  *float64  `json:"rawRatio,omitempty"`
+	ModifiedRatio             *float64  `json:"modifiedRatio,omitempty"`
+	PersonalBestRawRatio      *float64  `json:"personalBestRawRatio,omitempty"`
+	PersonalBestModifiedRatio *float64  `json:"personalBestModifiedRatio,omitempty"`
+	ModifiersMultiplier       *float64  `json:"modifiersMultiplier,omitempty"`
+	Modifiers                 *[]string `json:"modifiers,omitempty"`
 }
 
 type BSD_WinTracker struct {

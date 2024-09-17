@@ -345,6 +345,7 @@ func onNewSession(c chan *T.BSD_Session) {
 		go broadcastApiStruct(ao)
 	}
 }
+
 func onNewSongData(c chan *T.BSD_Song) {
 	for {
 		song := <-c

@@ -17,9 +17,6 @@ import (
 
 type BSD_Reader struct {
 	Default_path string
-	Headers      *[]types.BSD_HeaderGlobal
-	Songs        *[]types.BSD_Song
-	Sessions     *[]types.BSD_Session
 	Session_map  map[string]*types.BSD_Session
 	db           *bsddb.DBwrap
 	web_ch       *types.WEB_Settings
@@ -56,10 +53,8 @@ func (reader *BSD_Reader) ParseBSDFromStream(stream string, date string, sid int
 			return fmt.Errorf("file: %s: JSON error: %v", date, err)
 		}
 		song.PlayDate = &date
-		if reader.Songs == nil {
-			return errors.New("could not parse song data. Reader was not initialized")
-		}
-		err = reader.db.RegisterSongData(&song, sid)
+		play_id, err := reader.db.RegisterSongData(&song, sid)
+		song.PlayID = &play_id
 		if err != nil {
 			if err.Error() == bsddb.ERR_SONG_DATA_EXISTS {
 				// ignore, song exists
@@ -72,7 +67,7 @@ func (reader *BSD_Reader) ParseBSDFromStream(stream string, date string, sid int
 				*reader.web_ch.OnNewSongData <- &song
 			}
 		}
-		*reader.Songs = append(*reader.Songs, song)
+
 	case (strings.Contains(stream, "totalScore")):
 		// header
 		header := types.BSD_HeaderGlobal{}
@@ -81,9 +76,6 @@ func (reader *BSD_Reader) ParseBSDFromStream(stream string, date string, sid int
 			return err
 		}
 		header.Date = &date
-		if reader.Headers == nil {
-			return errors.New("could not parse header data. Reader was not initialized")
-		}
 
 		err = reader.db.RegisterBSDHeader(&header, sid)
 		if err != nil {
@@ -96,7 +88,6 @@ func (reader *BSD_Reader) ParseBSDFromStream(stream string, date string, sid int
 			log.Printf("Registered new header data for session %d\n", sid)
 		}
 
-		*reader.Headers = append(*reader.Headers, header)
 	default:
 		return errors.New("unrecognized stream format for BSD file")
 	}
@@ -193,7 +184,6 @@ func (reader *BSD_Reader) FileWatcher() {
 				FilePath:  &reader.Default_path,
 				UpdatedAt: &f_moddime,
 			}
-			*reader.Sessions = append(*reader.Sessions, session)
 			reader.Session_map[reader.Default_path+f_name] = &session
 
 			if reader.web_ch != nil && reader.web_ch.OnNewSession != nil {
@@ -217,9 +207,6 @@ func (reader *BSD_Reader) FileWatcher() {
 }
 
 func (reader *BSD_Reader) Init(db *bsddb.DBwrap, web_channels *types.WEB_Settings) error {
-	reader.Headers = &[]types.BSD_HeaderGlobal{}
-	reader.Songs = &[]types.BSD_Song{}
-	reader.Sessions = &[]types.BSD_Session{}
 	reader.Session_map = make(map[string]*types.BSD_Session)
 	reader.db = db
 	reader.web_ch = web_channels
@@ -276,7 +263,7 @@ func (reader *BSD_Reader) Init(db *bsddb.DBwrap, web_channels *types.WEB_Setting
 			FilePath:  &reader.Default_path,
 			UpdatedAt: &f_moddime,
 		}
-		*reader.Sessions = append(*reader.Sessions, session)
+
 		reader.Session_map[reader.Default_path+f_name] = &session
 		log.Printf("Processing session: %d\n", sid)
 

@@ -156,15 +156,15 @@ func (db *DBwrap) CreateNewSession(f_name string, f_path string, mod_time time.T
 	return sid, nil
 }
 
-func (db *DBwrap) RegisterSongData(data *T.BSD_Song, sid int) error {
-
+func (db *DBwrap) RegisterSongData(data *T.BSD_Song, sid int) (int, error) {
+	play_id := -1
 	if data == nil || data.Trackers == nil {
-		return errors.New("corrupted song data")
+		return play_id, errors.New("corrupted song data")
 	}
 	// use tracker data as unique identifier
 	play_track_signature_bytes, err := json.Marshal(data.Trackers)
 	if err != nil {
-		return errors.New("failed to create track signature")
+		return play_id, errors.New("failed to create track signature")
 	}
 
 	pts_str := string(play_track_signature_bytes)
@@ -178,31 +178,30 @@ func (db *DBwrap) RegisterSongData(data *T.BSD_Song, sid int) error {
 	).Scan(&existing_plays)
 
 	if err != nil {
-		return err
+		return play_id, err
 	}
 
 	if existing_plays > 0 {
-		return errors.New(ERR_SONG_DATA_EXISTS)
+		return play_id, errors.New(ERR_SONG_DATA_EXISTS)
 	}
 
-	var play_id int
 	err = db.db.QueryRow(`INSERT INTO song_data(sid, songDataType, playerID, songID, songDifficulty, songName, songArtist, songMapper, gameMode, songDifficultyRank, songSpeed, songStartTime, songDuration, songJumpDistance, trackers, indexed_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8 ,$9 ,$10, $11, $12, $13, $14, $15, $16) RETURNING play_id`, sid, data.SongDataType, data.PlayerID, data.SongID, data.SongDifficulty, data.SongName, data.SongArtist, data.SongMapper, data.GameMode, data.SongDifficultyRank, data.SongSpeed, data.SongStartTime, data.SongDuration, data.SongJumpDistance, pts_str, time.Now().UnixMilli()).Scan(&play_id)
 	if err != nil {
-		return err
+		return play_id, err
 	}
 
 	if data.DeepTrackers != nil && data.DeepTrackers.NoteTracker != nil {
 		note_tracker_bytes, err := json.Marshal(data.DeepTrackers.NoteTracker)
 		if err != nil {
-			return errors.New("failed to create deepTrackers JSON")
+			return play_id, errors.New("failed to create deepTrackers JSON")
 		}
 
 		_, err = db.db.Exec(`INSERT INTO deep_trackers(play_id, noteTracker) VALUES ($1, $2)`, play_id, string(note_tracker_bytes))
 		if err != nil {
-			return err
+			return play_id, err
 		}
 	}
-	return nil
+	return play_id, nil
 }
 
 func (db *DBwrap) RegisterBSDHeader(data *T.BSD_HeaderGlobal, sid int) error {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "embed"
 
@@ -16,6 +17,10 @@ import (
 	"fyne.io/systray"
 	"github.com/gen2brain/beeep"
 	"golang.design/x/clipboard"
+)
+
+const (
+	STD_LOG_FOLDER = "./logs/"
 )
 
 var (
@@ -70,13 +75,7 @@ func startSetup() error {
 		return err
 	}
 
-	if bsd_reader.Headers != nil {
-		log.Printf("Header count: %d\n", len(*bsd_reader.Headers))
-	}
-
-	if bsd_reader.Songs != nil {
-		log.Printf("Song data count: %d\n", len(*bsd_reader.Songs))
-	}
+	// @TODO: Onload statistics
 
 	err = bsdweb.Init(&web_ch)
 	if err != nil {
@@ -155,9 +154,43 @@ func onReady() {
 
 func onExit() {
 	db.Close()
+	log.Println("Shutting down API instance")
 	os.Exit(0)
 }
 
+func prepLogs() {
+
+	fmt.Println("Logs OK")
+}
+
 func main() {
+	_, err := os.Stat(STD_LOG_FOLDER)
+	var mkdir_err error
+	if os.IsNotExist(err) {
+		// make logs folder
+		mkdir_err = os.Mkdir(STD_LOG_FOLDER, 0644)
+	}
+
+	if (err != nil && !os.IsNotExist(err)) || mkdir_err != nil {
+		// failed to create logfile, fallback to console out
+		// by returning early
+		return
+	}
+
+	prefix := time.Now().Format("2006-01-02_15-04-05")
+
+	fileName := prefix + ".log"
+
+	logFile, err := os.OpenFile(STD_LOG_FOLDER+fileName, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer logFile.Close()
+
+	log.SetOutput(logFile)
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+
+	log.Println("Starting a new API instance...")
+
 	systray.Run(onReady, onExit)
 }
