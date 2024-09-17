@@ -5,7 +5,7 @@ A client-side server providing a convinient way to access your [Beat Savior](htt
 > You have to have [Beat Savior Data Plugin](https://github.com/Mystogan98/BeatSaviorData) installed for the API to work.
 
 > [!TIP]
-> This program only provides a way to access the data. It does not construct overlays or display any data by itself. Check the [Examples folder](examples/) for integration examples.
+> This program only provides a way to access the data. It does not construct overlays or display any data by itself. Check the [Examples folder](examples/) or [Examples section](#example-usage) for integration examples.
 
 ## Usecases
 
@@ -39,7 +39,16 @@ Here is a quick reference guide for all the icons:
 > This section is still WIP.
 
 ## Example usage
+This section contains some example projects that you can modify to your liking.
 
 | Name                                                              | Features      | Difficulty |
 | ---                                                               | ---           |    :---:   |
 | [Basic OBS overlay on song finish](examples/obs_basic_renderer/)  | WebSocket API |    ●●○○○   |
+
+
+## Roadmap
+- [x] WebSocket - notification on new song data
+- [ ] REST API - a way to browse the data using GET and POST requests
+- [ ] WebSocket - API for accessing per-note statistics
+- [ ] WebSocket - notification on new session data
+- [ ] WebSocket - notification on new/changed header/settings data
