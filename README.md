@@ -64,7 +64,7 @@ This section contains some example projects that you can modify to your liking.
 ## Roadmap
 - [x] WebSocket - notification on new song data
 - [x] WebSocket - notification on new session data
-- [ ] REST API - a way to browse the data using GET and POST requests
+- [x] REST API - a way to browse the data using GET and POST requests
 - [ ] WebSocket - API for accessing per-note statistics
 - [ ] WebSocket - notification on new/changed header/settings data
 - [ ] General - "Update available" notification

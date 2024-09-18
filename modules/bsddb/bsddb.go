@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -16,6 +18,10 @@ const (
 	ERR_SESSION_EXISTS     = "failed to create new session. Session exists"
 	ERR_SONG_DATA_EXISTS   = "song insert aborted. Song data already exists"
 	ERR_HEADER_DATA_EXISTS = "header data insert aborted. Header data already exists"
+)
+
+var (
+	SPACE_RE = regexp.MustCompile("[ \t]+")
 )
 
 type DBwrap_int interface {
@@ -241,14 +247,23 @@ func (db *DBwrap) UpdateSessionModtime(f_name string, f_path string, time_ms int
 	return sid, err
 }
 
-func (db *DBwrap) GetLatestSessionData() (*T.BSD_Session, error) {
+func (db *DBwrap) GetSessionById(sid *int) (*T.BSD_Session, error) {
+	if sid == nil {
+		return nil, errors.New("session ID is missing")
+	}
+
+	if *sid <= 0 {
+		return nil, errors.New("invalid Session ID")
+	}
 
 	sess := T.BSD_Session{}
 	sess.Header = &T.BSD_HeaderGlobal{}
 	sess.Songs = &[]T.BSD_Song{}
 
+	sess.Sid = sid
+
 	// get general session data
-	err := db.db.QueryRow(`SELECT sid, f_name, f_path, updated_at FROM sessions ORDER BY updated_at DESC LIMIT 1`).Scan(&sess.Sid, &sess.FileName, &sess.FilePath, &sess.UpdatedAtInt)
+	err := db.db.QueryRow(`SELECT sid, f_name, f_path, updated_at FROM sessions WHERE sid=$1`, sess.Sid).Scan(&sess.Sid, &sess.FileName, &sess.FilePath, &sess.UpdatedAtInt)
 	if err != nil {
 		return nil, err
 	}
@@ -270,9 +285,10 @@ func (db *DBwrap) GetLatestSessionData() (*T.BSD_Session, error) {
 	songID, songDifficulty, songName,
 	songArtist, songMapper, gameMode,
 	songDifficultyRank, songSpeed, songDuration,
-	songJumpDistance 
+	songJumpDistance, indexed_at
 	FROM 
-	song_data WHERE sid = $1`, sess.Sid)
+	song_data WHERE sid = $1
+	ORDER BY indexed_at DESC`, sess.Sid)
 	if err != nil {
 		return &sess, err
 	}
@@ -285,14 +301,120 @@ func (db *DBwrap) GetLatestSessionData() (*T.BSD_Session, error) {
 			&song_data.SongID, &song_data.SongDifficulty, &song_data.SongName,
 			&song_data.SongArtist, &song_data.SongMapper, &song_data.GameMode,
 			&song_data.SongDifficultyRank, &song_data.SongSpeed, &song_data.SongDuration,
-			&song_data.SongJumpDistance,
-		)
+			&song_data.SongJumpDistance, &song_data.IndexedAtInt)
 		if err != nil {
 			return &sess, err
 		}
 		*sess.Songs = append(*sess.Songs, song_data)
 	}
-
 	return &sess, nil
+}
 
+func (db *DBwrap) GetLatestSessionData() (*T.BSD_Session, error) {
+
+	var last_sid int
+	// get last sid
+	err := db.db.QueryRow(`SELECT sid FROM sessions ORDER BY updated_at DESC LIMIT 1`).Scan(&last_sid)
+	if err != nil {
+		return nil, err
+	}
+
+	return db.GetSessionById(&last_sid)
+}
+
+func (db *DBwrap) PlaySearch(query *T.BSD_Song) (*[]T.BSD_Song, error) {
+	if query == nil || query.SearchQuery == nil || len(*query.SearchQuery) == 0 {
+		return nil, errors.New("song search query must be specified")
+	}
+
+	collection := []T.BSD_Song{}
+
+	// cleanup query
+	query_reformatted := "%" + strings.ToLower(strings.Join(SPACE_RE.Split(strings.Trim(*query.SearchQuery, " \r\n"), -1), " ")) + "%"
+
+	// 2 percent signs + 3 user characters
+	if len(query_reformatted) < 5 {
+		return nil, errors.New("3 or more characters required for search")
+	}
+
+	rows, err := db.db.Query(`SELECT 
+	play_id, sid, playerID, 
+	songID, songDifficulty, songName,
+	songArtist, songMapper, gameMode,
+	songDifficultyRank, songSpeed, songDuration,
+	songJumpDistance, indexed_at
+	FROM song_data
+	WHERE
+	LOWER(songID) LIKE $1 OR
+	LOWER(songName) LIKE $1 OR
+	LOWER(songArtist) LIKE $1 OR
+	LOWER(songMapper) LIKE $1
+	ORDER BY indexed_at DESC`, query_reformatted)
+	if err != nil {
+		return &collection, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		song_data := T.BSD_Song{}
+		err := rows.Scan(&song_data.PlayID, &song_data.SID, &song_data.PlayerID,
+			&song_data.SongID, &song_data.SongDifficulty, &song_data.SongName,
+			&song_data.SongArtist, &song_data.SongMapper, &song_data.GameMode,
+			&song_data.SongDifficultyRank, &song_data.SongSpeed, &song_data.SongDuration,
+			&song_data.SongJumpDistance, &song_data.IndexedAtInt)
+		if err != nil {
+			return &collection, err
+		}
+		collection = append(collection, song_data)
+	}
+
+	return &collection, nil
+}
+
+func (db *DBwrap) GetPlayById(play_id *int) (*T.BSD_Song, error) {
+
+	if play_id == nil {
+		return nil, errors.New("play_id must be specified")
+	}
+
+	if *play_id <= 0 {
+		return nil, errors.New("invalid play_id")
+	}
+
+	song_data := T.BSD_Song{}
+	var trackers string
+
+	err := db.db.QueryRow(`SELECT 
+	play_id, sid, playerID, 
+	songID, songDifficulty, songName,
+	songArtist, songMapper, gameMode,
+	songDifficultyRank, songSpeed, songDuration,
+	songJumpDistance, indexed_at, trackers
+	FROM 
+	song_data WHERE play_id = $1
+	LIMIT 1`, play_id).Scan(
+		&song_data.PlayID, &song_data.SID, &song_data.PlayerID,
+		&song_data.SongID, &song_data.SongDifficulty, &song_data.SongName,
+		&song_data.SongArtist, &song_data.SongMapper, &song_data.GameMode,
+		&song_data.SongDifficultyRank, &song_data.SongSpeed, &song_data.SongDuration,
+		&song_data.SongJumpDistance, &song_data.IndexedAtInt, &trackers)
+	if err != nil {
+		return &song_data, err
+	}
+
+	// attempt to parse tracker data
+	err = json.Unmarshal([]byte(trackers), &song_data.Trackers)
+
+	return &song_data, err
+}
+
+func (db *DBwrap) GetLatestPlay() (*T.BSD_Song, error) {
+	var last_play_id int
+	// get last sid
+	err := db.db.QueryRow(`SELECT play_id FROM song_data ORDER BY indexed_at DESC LIMIT 1`).Scan(&last_play_id)
+	if err != nil {
+		return nil, err
+	}
+
+	return db.GetPlayById(&last_play_id)
 }

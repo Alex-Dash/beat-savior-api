@@ -64,9 +64,11 @@ type BSD_Song struct {
 	DeepTrackers       *BSD_DeepTrackers `json:"deepTrackers,omitempty"`
 
 	// Custom Field
-	PlayDate *string `json:"playDate,omitempty"`
-	PlayID   *int    `json:"playID,omitempty"`
-	SID      *int    `json:"sid,omitempty"`
+	IndexedAtInt *int    `json:"indexed_at_int,omitempty"`
+	SearchQuery  *string `json:"search_query,omitempty"`
+	PlayDate     *string `json:"play_date,omitempty"`
+	PlayID       *int    `json:"play_id,omitempty"`
+	SID          *int    `json:"sid,omitempty"`
 }
 
 type BSD_Trackers struct {

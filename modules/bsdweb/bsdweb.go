@@ -286,6 +286,8 @@ func apiSystem(w http.ResponseWriter, r *http.Request, endpoint string, operatio
 	switch endpoint {
 	case "session":
 		apiSysSession(w, r, operation, apireq)
+	case "play":
+		apiSysPlay(w, r, operation, apireq)
 	default:
 		ThrowApiErr(w, "Invalid API endpoint", nil, 400)
 	}
@@ -300,6 +302,55 @@ func apiSysSession(w http.ResponseWriter, r *http.Request, operation string, api
 			return
 		}
 		apiRespond(w, &API_obj{Session: sess})
+	case "info":
+		if apireq == nil || apireq.Session == nil || apireq.Session.Sid == nil {
+			ThrowApiErr(w, "Session ID is required", nil, 400)
+			return
+		}
+		sess, err := db.GetSessionById(apireq.Session.Sid)
+		if err != nil {
+			ThrowApiErr(w, "Failed to get the play session info by ID", err, 500)
+			return
+		}
+		apiRespond(w, &API_obj{Session: sess})
+	default:
+		ThrowApiErr(w, "Invalid API operation", nil, 400)
+	}
+}
+
+func apiSysPlay(w http.ResponseWriter, r *http.Request, operation string, apireq *API_obj) {
+	switch operation {
+	case "latest":
+		play_data, err := db.GetLatestPlay()
+		if err != nil {
+			ThrowApiErr(w, "Failed to get latest play data", err, 500)
+			return
+		}
+		apiRespond(w, &API_obj{Song: play_data})
+	case "info":
+		if apireq == nil || apireq.Song == nil || apireq.Song.PlayID == nil {
+			ThrowApiErr(w, "play_id must be specified", nil, 400)
+			return
+		}
+		play_data, err := db.GetPlayById(apireq.Song.PlayID)
+		if err != nil {
+			ThrowApiErr(w, "Failed to get play data", err, 500)
+			return
+		}
+		apiRespond(w, &API_obj{Song: play_data})
+	case "search":
+		if apireq == nil || apireq.Song == nil || apireq.Song.SearchQuery == nil {
+			ThrowApiErr(w, "Search request requires search string", nil, 400)
+			return
+		}
+
+		songs, err := db.PlaySearch(apireq.Song)
+		if err != nil {
+			ThrowApiErr(w, "Failed to find any songs", err, 400)
+			return
+		}
+		apiRespond(w, &API_obj{Songs: songs})
+
 	default:
 		ThrowApiErr(w, "Invalid API operation", nil, 400)
 	}
